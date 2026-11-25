@@ -1,7 +1,8 @@
-// Rush Hour Kitchen: hand the game in. Copies game/ and screenshots/ from
-// beside this file to /output and writes /output/dossier.json, the summary
-// the judge reads, with the vendored make.fun library. The game and its
-// screenshots are copied byte for byte, so two runs write identical output.
+// Rush Hour Kitchen: hand the game in. This program copies game/ and
+// screenshots/ from beside this file to /output, then writes the dossier
+// (/output/dossier.json), the summary the judge reads, using the vendored
+// make.fun library. The game and its screenshots are copied byte for byte,
+// so running the program twice writes identical output.
 import { cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
