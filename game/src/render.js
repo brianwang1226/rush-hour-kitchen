@@ -1,5 +1,7 @@
 // Render: everything the player sees, drawn on one canvas. Each function
-// paints one part of the kitchen from the current game state.
+// paints one part of the kitchen from the current game state. The drawing
+// order matters: background first, then board, timer and score, then the
+// plate and buttons, then the ingredient counter, then any overlay.
 import { W, H, INGREDIENTS, LAYOUT, ingredientById } from "./config.js";
 import { counts } from "./orders.js";
 
