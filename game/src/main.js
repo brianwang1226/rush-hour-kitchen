@@ -1,5 +1,5 @@
 // Rush Hour Kitchen: state, loop and rules. The plate must match the order
-// exactly to serve; a wrong plate can be trashed and rebuilt.
+// exactly to serve; a wrong plate can be trashed and rebuilt from scratch.
 import { W, H, GAME_SECONDS, LAYOUT } from "./config.js";
 import { mulberry32 } from "./random.js";
 import { newOrder, plateMatches, plateStillPossible } from "./orders.js";
@@ -19,7 +19,7 @@ canvas.height = H;
 const params = new URLSearchParams(location.search);
 const shot = params.get("shot");
 
-const state = {
+const game = {
   screen: "title", // title | play | over
   order: null,
   plate: [],
@@ -32,59 +32,59 @@ const state = {
   lastOrderName: "",
 };
 
-let rng = Math.random;
-let lastTick = 0;
+let randomFn = Math.random;
+let prevNow = 0;
 
 function startGame() {
-  state.screen = "play";
-  state.score = 0;
-  state.served = 0;
-  state.combo = 0;
-  state.timeLeft = GAME_SECONDS;
-  state.plate = [];
-  state.flash = "";
-  state.lastOrderName = "";
-  state.order = newOrder(rng, "");
-  lastTick = performance.now();
+  game.screen = "play";
+  game.score = 0;
+  game.served = 0;
+  game.combo = 0;
+  game.timeLeft = GAME_SECONDS;
+  game.plate = [];
+  game.flash = "";
+  game.lastOrderName = "";
+  game.order = newOrder(randomFn, "");
+  prevNow = performance.now();
 }
 
 function serve() {
-  if (!plateMatches(state.order, state.plate)) {
-    state.flash = "That plate does not match the order yet.";
-    state.flashUntil = performance.now() + 1200;
-    state.combo = 0;
+  if (!plateMatches(game.order, game.plate)) {
+    game.flash = "That plate does not match the order yet.";
+    game.flashUntil = performance.now() + 1200;
+    game.combo = 0;
     return;
   }
-  const bonus = Math.ceil(state.timeLeft / 10);
-  state.score += state.order.points + bonus;
-  state.served++;
-  state.combo++;
-  state.flash = "+" + (state.order.points + bonus) + "  " + state.order.name + " served!";
-  state.flashUntil = performance.now() + 1200;
-  state.plate = [];
-  state.lastOrderName = state.order.name;
-  state.order = newOrder(rng, state.lastOrderName);
+  const bonus = Math.ceil(game.timeLeft / 10);
+  game.score += game.order.points + bonus;
+  game.served++;
+  game.combo++;
+  game.flash = "+" + (game.order.points + bonus) + "  " + game.order.name + " served!";
+  game.flashUntil = performance.now() + 1200;
+  game.plate = [];
+  game.lastOrderName = game.order.name;
+  game.order = newOrder(randomFn, game.lastOrderName);
 }
 
 function onClick(e) {
   const rect = canvas.getBoundingClientRect();
   const x = ((e.clientX - rect.left) / rect.width) * W;
   const y = ((e.clientY - rect.top) / rect.height) * H;
-  if (state.screen === "title" || state.screen === "over") {
+  if (game.screen === "title" || game.screen === "over") {
     startGame();
     return;
   }
   const action = clickAction(x, y);
   if (action.type === "ingredient") {
-    state.plate.push(action.id);
-    state.flash = "";
+    game.plate.push(action.id);
+    game.flash = "";
   } else if (action.type === "serve") {
     serve();
   } else if (action.type === "trash") {
-    state.plate = [];
-    state.combo = 0;
-    state.flash = "Plate cleared.";
-    state.flashUntil = performance.now() + 900;
+    game.plate = [];
+    game.combo = 0;
+    game.flash = "Plate cleared.";
+    game.flashUntil = performance.now() + 900;
   }
 }
 
@@ -92,7 +92,7 @@ canvas.addEventListener("pointerdown", onClick);
 
 function draw(now) {
   drawBackground(ctx);
-  if (state.screen === "title") {
+  if (game.screen === "title") {
     drawBoard(ctx, { name: "Classic Burger", needs: ["bun", "patty", "lettuce"] }, 0);
     drawTimer(ctx, GAME_SECONDS);
     drawScore(ctx, 0, 0);
@@ -102,26 +102,26 @@ function draw(now) {
     drawTitle(ctx);
     return;
   }
-  drawBoard(ctx, state.order, state.served);
-  drawTimer(ctx, Math.max(0, state.timeLeft));
-  drawScore(ctx, state.score, state.combo);
-  drawPlate(ctx, state.plate);
-  drawButtons(ctx, plateMatches(state.order, state.plate));
+  drawBoard(ctx, game.order, game.served);
+  drawTimer(ctx, Math.max(0, game.timeLeft));
+  drawScore(ctx, game.score, game.combo);
+  drawPlate(ctx, game.plate);
+  drawButtons(ctx, plateMatches(game.order, game.plate));
   drawIngredientBar(ctx);
-  if (now < state.flashUntil) drawFlash(ctx, state.flash);
-  if (state.screen === "over") drawGameOver(ctx, state.score, state.served);
+  if (now < game.flashUntil) drawFlash(ctx, game.flash);
+  if (game.screen === "over") drawGameOver(ctx, game.score, game.served);
 }
 
 function tick(now) {
-  if (state.screen === "play") {
-    const dt = (now - lastTick) / 1000;
-    state.timeLeft -= dt;
-    if (state.timeLeft <= 0) {
-      state.timeLeft = 0;
-      state.screen = "over";
+  if (game.screen === "play") {
+    const dt = (now - prevNow) / 1000;
+    game.timeLeft -= dt;
+    if (game.timeLeft <= 0) {
+      game.timeLeft = 0;
+      game.screen = "over";
     }
   }
-  lastTick = now;
+  prevNow = now;
   draw(now);
   requestAnimationFrame(tick);
 }
@@ -129,32 +129,32 @@ function tick(now) {
 // Fixed states for screenshots (no timer running).
 function applyShot() {
   if (!shot) return;
-  rng = mulberry32(20261125);
-  state.screen = "play";
-  state.timeLeft = 74;
-  state.score = 210;
-  state.served = 2;
-  state.combo = 2;
+  randomFn = mulberry32(20261125);
+  game.screen = "play";
+  game.timeLeft = 74;
+  game.score = 210;
+  game.served = 2;
+  game.combo = 2;
   if (shot === "title") {
-    state.screen = "title";
+    game.screen = "title";
     return;
   }
   if (shot === "mid") {
-    state.order = newOrder(rng, "");
-    state.plate = ["bun", "patty"];
+    game.order = newOrder(randomFn, "");
+    game.plate = ["bun", "patty"];
     return;
   }
   if (shot === "serve") {
-    state.order = { name: "Classic Burger", needs: ["bun", "patty", "lettuce"], points: 100 };
-    state.plate = ["bun", "patty", "lettuce"];
+    game.order = { name: "Classic Burger", needs: ["bun", "patty", "lettuce"], points: 100 };
+    game.plate = ["bun", "patty", "lettuce"];
     return;
   }
   if (shot === "over") {
-    state.screen = "over";
-    state.order = { name: "Classic Burger", needs: ["bun", "patty", "lettuce"], points: 100 };
-    state.plate = ["bun", "patty"];
-    state.score = 480;
-    state.served = 4;
+    game.screen = "over";
+    game.order = { name: "Classic Burger", needs: ["bun", "patty", "lettuce"], points: 100 };
+    game.plate = ["bun", "patty"];
+    game.score = 480;
+    game.served = 4;
     return;
   }
 }
