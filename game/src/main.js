@@ -1,4 +1,5 @@
-// Rush Hour Kitchen: state, loop and rules.
+// Rush Hour Kitchen: state, loop and rules. The plate must match the order
+// exactly to serve; a wrong plate can be trashed and rebuilt.
 import { W, H, GAME_SECONDS, LAYOUT } from "./config.js";
 import { mulberry32 } from "./random.js";
 import { newOrder, plateMatches, plateStillPossible } from "./orders.js";
