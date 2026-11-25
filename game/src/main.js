@@ -1,5 +1,7 @@
 // Rush Hour Kitchen: state, loop and rules. The plate must match the order
 // exactly to serve; a wrong plate can be trashed and rebuilt from scratch.
+// The loop runs on requestAnimationFrame; the timer only ticks while the
+// screen is "play", and the fixed ?shot= states freeze it for screenshots.
 import { W, H, GAME_SECONDS, LAYOUT } from "./config.js";
 import { mulberry32 } from "./random.js";
 import { newOrder, plateMatches, plateStillPossible } from "./orders.js";
