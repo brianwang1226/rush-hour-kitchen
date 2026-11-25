@@ -1,26 +1,29 @@
-// A small seeded random generator, so the same seed deals the same orders.
-// The game uses Math.random in play; shots.js seeds this one for screenshots.
-
+// Rush Hour Kitchen: deterministic randomness. A seeded generator deals the
+// same order sequence every time, which keeps the screenshot states stable.
 export function mulberry32(seed) {
-  let a = seed >>> 0;
+  let state = seed >>> 0;
   return function () {
-    a |= 0;
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    state |= 0;
+    state = (state + 0x6d2b79f5) | 0;
+    let mix = Math.imul(state ^ (state >>> 15), 1 | state);
+    mix = (mix + Math.imul(mix ^ (mix >>> 7), 61 | mix)) ^ mix;
+    return ((mix ^ (mix >>> 14)) >>> 0) / 4294967296;
   };
 }
 
+// Draw one element from a list with the supplied generator.
 export function pick(rng, arr) {
   return arr[Math.floor(rng() * arr.length)];
 }
 
+// Return a shuffled copy of a list (Fisher-Yates), leaving the original alone.
 export function shuffle(rng, arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
+  const out = arr.slice();
+  for (let i = out.length - 1; i > 0; i--) {
     const j = Math.floor(rng() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
+    const tmp = out[i];
+    out[i] = out[j];
+    out[j] = tmp;
   }
-  return a;
+  return out;
 }
