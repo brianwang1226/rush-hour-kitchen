@@ -1,11 +1,13 @@
-// Rush Hour Kitchen: tuning and data. Every value the game reads lives here.
+// Rush Hour Kitchen: tuning and data. Every number the game reads lives here,
+// so balancing the game means editing this file and nothing else. The two
+// colours per ingredient are the fill and the darker edge used when drawing.
 
 export const W = 960;
 export const H = 640;
 
 export const GAME_SECONDS = 90;
 
-// Ingredients: id, display name, colour used to draw it, short label.
+// Ingredients: id, display name, and the two colours used to draw it.
 export const INGREDIENTS = [
   { id: "bun", name: "Bun", color: "#e8b04b", dark: "#b97f2a" },
   { id: "patty", name: "Patty", color: "#7a4a21", dark: "#4d2c10" },
@@ -29,7 +31,7 @@ export const RECIPES = [
   { name: "Cheesy Melt", needs: ["bun", "cheese", "cheese", "patty"], points: 140 },
 ];
 
-// Layout: where the interactive zones sit (canvas coordinates).
+// Layout: where each zone sits on the canvas, in canvas coordinates.
 export const LAYOUT = {
   board: { x: 20, y: 14, w: 560, h: 76 },
   timer: { x: 600, y: 14, w: 150, h: 76 },
